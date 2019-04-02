@@ -167,7 +167,7 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 	
 	# save
 	writer.save()
-	print('\nDone.\n')
+	print('\nDone! Check "{} vs {}.xlsx" for the result.\n'.format(path_OLD.stem,path_NEW.stem))
 
 def get_col_widths(dataframe):
 	# First we find the maximum length of the index column   
@@ -180,7 +180,7 @@ def print_cols(df, path):
 
 	# print out the column names with numbers for user selection
 	i = 0
-	print(f"Columns in {path}:")
+	print(f"\nColumns in {path}:")
 	for column in df.columns:
 		print(f"col {i}: ", end = "")
 		print(column)
@@ -190,9 +190,13 @@ def print_cols(df, path):
 	
 
 def main():
-	print("Welcome to excel-diff V1.0.0!")
+	print("\nWelcome to excel-diff V1.0.0!")
 	print("Written by Ari Mendelow, Copyright © 2019")
 	print("See https://github.com/arimendelow/excel-diff for more information.\n")
+	print("Note that in this version, mapping is done using column names.")
+	print("Therefore, column names with the same data must be identical.")
+	print("For now, you can manually ensure that column names are the same.")
+	print("The ability to map one column name to another is currently in development.")
 	# make sure that the command was written along with the two file names
 	if not (len(sys.argv) == 3):
 		print("Usage: excel-diff.exe old_file.xlsx new_file.xlsx")
@@ -204,12 +208,23 @@ def main():
 		# get index col from data
 		df_OLD = pd.read_excel(path_OLD)
 		df_NEW = pd.read_excel(path_NEW)
-
-		index_col_OLD = print_cols(df_OLD, path_OLD)
-		index_col_NEW = print_cols(df_NEW, path_NEW)
 		
-		# index_col = int(input("\nWhich column do you want to use for indexing? "))
-		print('\nIndex column in OLD spreadsheet: {}\n'.format(df_OLD.columns[index_col_OLD]))
+		print("\nBy default, I use the first column in both spreadsheets for indexing.")
+		print("Note that this means that I'll pull the information in this column to")
+		print("match the rows, so the content must be the same,")
+		print("though the column titles can be different.")
+
+		print("Do you want to continue with this default behavior?")
+		opt = input("Choose NO if you'd rather pick the index column in each spreadsheet.\n(YES or NO): ")
+		while opt not in ["Y", "y", "YES", "yes", "N", "n", "NO", "no"]:
+			opt = input("You must choose YES or NO\n")
+		if opt in ["N", "n", "NO", "no"]:
+			index_col_OLD = print_cols(df_OLD, path_OLD)
+			index_col_NEW = print_cols(df_NEW, path_NEW)
+		else:
+			index_col_OLD = 0
+			index_col_NEW = 0
+		print('\nIndex column in OLD spreadsheet: {}'.format(df_OLD.columns[index_col_OLD]))
 		print('\nIndex column in NEW spreadsheet: {}\n'.format(df_NEW.columns[index_col_NEW]))
 
 		excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW)
