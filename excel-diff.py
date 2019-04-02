@@ -108,8 +108,8 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 	rm_fmt = workbook.add_format({'font_color': '#FF0000', 'bold':True, 'align': 'center'})
 	rm_fmt_header = workbook.add_format({'font_color': '#FF0000', 'bold':True, 'align': 'center', 'border':1})
 	changed_fmt = workbook.add_format({'font_color': '#FFFF00', 'bold':True, 'bg_color':'#B1B3B3', 'align': 'center'})
-	new_fmt = workbook.add_format({'font_color': '#14a810','bold':True, 'align': 'center'})
-	new_fmt_header = workbook.add_format({'font_color': '#14a810','bold':True, 'align': 'center', 'border':1})
+	new_fmt = workbook.add_format({'font_color': '#FFFFFF','bold':True, 'bg_color':'#629632', 'align': 'center'})
+	new_fmt_header = workbook.add_format({'font_color': '#FFFFFF','bold':True, 'bg_color':'#629632', 'align': 'center', 'border':1})
 	orig_fmt_header = workbook.add_format({'font_color': '#000000', 'bold':True, 'align': 'center', 'border':1})
 
 	# Indicate added/removed columns:
