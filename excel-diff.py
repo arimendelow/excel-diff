@@ -1,9 +1,13 @@
 import pandas as pd
 from pathlib import Path
 import sys # for argv
+import progressbar
 
 
 def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
+
+	# this function can take some time with larger files, so going to show a loading bar:
+	bar = progressbar.ProgressBar(max_value=progressbar.UnknownLength)
 
 	# use pandas DataFrames for the comparison - read the files
 	df_OLD = pd.read_excel(path_OLD, index_col=index_col_OLD).fillna(0)
@@ -22,6 +26,7 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 	sharedCols = list(set(cols_OLD).intersection(cols_NEW))
 	
 	for row in df_diff.index:
+		bar.update()
 		# if the row is in both tables
 		if (row in df_OLD.index) and (row in df_NEW.index):
 			# go through the stuff that's in both sheets, checking if it's been changed
@@ -39,6 +44,7 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 			new_rows.append(row)
 
 	for row in df_diff.index:
+		bar.update()
 		# for values in columns that have been deleted:
 		# (this is needed because otherwise these values would never be added to the output sheet)
 		for col in df_OLD.columns:
@@ -49,16 +55,19 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 					df_diff.loc[row,col] = df_OLD.loc[row,col]
 
 	for row in df_OLD.index:
+		bar.update()
 		# if the row is NOT in the new table
 		if row not in df_NEW.index:
 			dropped_rows.append(row)
 			df_diff = df_diff.append(df_OLD.loc[row,:])
 
 	for col in df_OLD.columns:
+		bar.update()
 		# if the col is NOT in the new table
 		if col not in df_NEW.columns:
 			dropped_cols.append(col)
 	for col in df_NEW.columns:
+		bar.update()
 		if col not in df_OLD.columns:
 			new_cols.append(col)
 
@@ -226,7 +235,7 @@ def main():
 			index_col_NEW = 0
 		print('\nIndex column in OLD spreadsheet: {}'.format(df_OLD.columns[index_col_OLD]))
 		print('\nIndex column in NEW spreadsheet: {}\n'.format(df_NEW.columns[index_col_NEW]))
-
+		
 		excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW)
 
 
