@@ -4,7 +4,7 @@
 Very simple to use, but requires a level of comfortability in command line. More thorough instructions with screenshots to come soon, but for now, a description of the files included in this repository, and a few basic instructions:
 
 - `excel-diff.py` - the source code for this script. Requires various imports to be run (see the `imports` section), and relies on Python3.
-- `excel-diff.exe` - a standalone (requires Python installation) Windows executable of the above script. Must be run from command line. Was created using [Nuitka](https://github.com/Nuitka/Nuitka).
+- `excel-diff.exe` - a standalone Windows executable of the above script. Must be run from command line. Was created using [PyInstaller](https://www.pyinstaller.org/).
 
 Both of the above files are run the same way:
 - `python excel-diff.py <file1.xlxs> <file2.xlxs>`
