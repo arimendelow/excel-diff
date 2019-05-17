@@ -31,11 +31,11 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 		if (row in df_OLD.index) and (row in df_NEW.index):
 			# go through the stuff that's in both sheets, checking if it's been changed
 			for col in sharedCols:
-				value_OLD = df_OLD.loc[row,col]
-				value_NEW = df_NEW.loc[row,col]
+				value_OLD = "" if pd.isnull(df_OLD.loc[row,col]) else df_OLD.loc[row,col]
+				value_NEW = "" if pd.isnull(df_NEW.loc[row,col]) else df_NEW.loc[row,col]
 				# if the value is unchanged, then:
-				if value_OLD==value_NEW:
-					df_diff.loc[row,col] = df_NEW.loc[row,col]
+				if value_OLD == value_NEW:
+					df_diff.loc[row,col] = value_OLD
 				# otherwise, if the value has been changed:
 				else:
 					mod_vals += 1
@@ -52,7 +52,7 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 			if row in df_OLD.index:
 				# but the COLUMN isnt
 				if col not in df_NEW.columns:
-					df_diff.loc[row,col] = df_OLD.loc[row,col]
+					df_diff.loc[row,col] = df_OLD.loc[row,col] if pd.notnull(df_OLD.loc[row,col]) else ""
 
 	for row in df_OLD.index:
 		bar.update()
@@ -170,9 +170,6 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 	# set approx column widths:
 	for i, width in enumerate(get_col_widths(df_diff)):
 		worksheet.set_column(i, i, width)
-
-	# finally, insert in the bottom of the table a report of how many changes exist between the two:
-
 	
 	# save
 	writer.save()
@@ -199,7 +196,7 @@ def print_cols(df, path):
 	
 
 def main():
-	print("\nWelcome to excel-diff V1.0.0!")
+	print("\nWelcome to excel-diff!")
 	print("Written by Ari Mendelow, Copyright © 2019")
 	print("See https://github.com/arimendelow/excel-diff for more information.\n")
 	print("Note that in this version, mapping is done using column names.")
