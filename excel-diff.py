@@ -128,8 +128,9 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 	# Save the worksheets
 	df_results.to_excel(writer, sheet_name='SUMMARY', index=False)
 	df_diff.to_excel(writer, sheet_name='DIFF', index=True)
-	df_NEW.to_excel(writer, sheet_name=path_NEW.stem, index=True)
-	df_OLD.to_excel(writer, sheet_name=path_OLD.stem, index=True)
+	# Make sure the worksheet name is ≤ 31 chars
+	df_NEW.to_excel(writer, sheet_name=path_NEW.stem[:31], index=True)
+	df_OLD.to_excel(writer, sheet_name=path_OLD.stem[:31], index=True)
 
 	# Make datasheets with all the information for the changed columns and add those to the workbook
 	for col in changedValsForDFS:
