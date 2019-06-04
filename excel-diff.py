@@ -121,9 +121,10 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 	print(f"\n{summaryChanged}")
 
 	# Save output and format
-	fname = '{} vs {}.xlsx'.format(path_OLD.stem,path_NEW.stem)
+	fname = f"{path_OLD.stem} vs {path_NEW.stem}.xlsx"
 	writer = pd.ExcelWriter(fname, engine='xlsxwriter')
 
+	# Save the worksheets
 	df_results.to_excel(writer, sheet_name='SUMMARY', index=False)
 	df_diff.to_excel(writer, sheet_name='DIFF', index=True)
 	df_NEW.to_excel(writer, sheet_name=path_NEW.stem, index=True)
@@ -200,7 +201,7 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 	
 	# save
 	writer.save()
-	print('\nDone! Check "{} vs {}.xlsx" for the result.\n'.format(path_OLD.stem,path_NEW.stem))
+	print(f'\nDone! Check {fname} for the result.\n')
 
 def get_col_widths(dataframe):
 	# First we find the maximum length of the index column   
