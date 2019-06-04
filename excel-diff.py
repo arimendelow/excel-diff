@@ -82,12 +82,20 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 
 	df_diff = df_diff.sort_index().fillna('')
 
+	# Create output strings with the summary
+	summaryNewDropped = f"New Rows:\n{new_rows}\n\nDropped Rows:\n{dropped_rows}\n\nNew Columns:\n{new_cols}\n\nDropped Columns:\n{dropped_cols}"
+	summaryOverall = f"{mod_vals} modified values; {len(new_rows)} new rows; {len(dropped_rows)} dropped rows; {len(new_cols)} new columns; {len(dropped_cols)} dropped columns"
+	summaryChanged = f"For a total of {len(sharedRows)} shared rows:"
+	if len(mod_cols) == 0:
+		summaryChanged += "\nNo values have been changed!"
+	else:
+		for col in mod_cols:
+			summaryChanged += f"\n{col} has {mod_cols[col]} changed values"
+
 	# add in the information about new/dropped rows/cols
 	# creating a new dataframe that will be added as a third sheet, called "results"
-	# DataFrame.append(other, ignore_index=False, verify_integrity=False, sort=None)
 	df_results = pd.DataFrame({"RESULTS (see worksheet DIFF for more information)":[
-											'{} modified values; {} new rows; {} dropped rows; {} new columns; {} dropped columns:'
-											.format(mod_vals, len(new_rows), len(dropped_rows), len(new_cols), len(dropped_cols)),
+											summaryOverall,
 											"New rows:                {}".format(new_rows),
 											"Dropped rows:        {}".format(dropped_rows),
 											"New columns:         {}".format(new_cols),
@@ -96,19 +104,11 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 
 	print(df_diff)
 
-	print(f"\nNew Rows:     	 {new_rows}")
-	print(f"Dropped Rows: 	 {dropped_rows}")
-	print(f"New Columns:     {new_cols}")
-	print(f"Dropped Columns: {dropped_cols}")
+	print(summaryNewDropped)
+	
+	print(f"\n{summaryOverall}")
 
-	print(f"\n{mod_vals} modified values; {len(new_rows)} new rows; {len(dropped_rows)} dropped rows; {len(new_cols)} new columns; {len(dropped_cols)} dropped columns:")
-
-	print(f"\nFor a total of {len(sharedRows)} shared rows:")
-	if len(mod_cols) == 0:
-		print("No values have been changed!")
-	else:
-		for col in mod_cols:
-			print(f"{col} has {mod_cols[col]} changed values")
+	print(f"\n{summaryChanged}")
 
 	# Save output and format
 	fname = '{} vs {}.xlsx'.format(path_OLD.stem,path_NEW.stem)
