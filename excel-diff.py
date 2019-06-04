@@ -24,11 +24,16 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 	cols_OLD = df_OLD.columns
 	cols_NEW = df_NEW.columns
 	sharedCols = list(set(cols_OLD).intersection(cols_NEW))
+
+	sharedRows = list(set(df_OLD.index).intersection(df_NEW.index))
+
+	# Track all information necessary for putting all changed information into mini-worksheets
+	changedValsForDFS = {}
 	
 	for row in df_diff.index:
 		bar.update()
 		# if the row is in both tables
-		if (row in df_OLD.index) and (row in df_NEW.index):
+		if row in sharedRows:
 			# go through the stuff that's in both sheets, checking if it's been changed
 			for col in sharedCols:
 				value_OLD = "" if pd.isnull(df_OLD.loc[row,col]) else df_OLD.loc[row,col]
@@ -38,8 +43,18 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 					df_diff.loc[row,col] = value_OLD
 				# otherwise, if the value has been changed:
 				else:
+					delta = f'{value_OLD} → {value_NEW}'
+					# In the diff worksheet, put the old and new values
+					df_diff.loc[row,col] = (delta)
+					
+					# Put the name of the column as well as the row name and changed value into this dictionary
+					if col in changedValsForDFS:
+						changedValsForDFS[col].append((row, delta))
+					else:
+						changedValsForDFS[col] = [(row, delta)]
+					
+					# Track overall number of changed values
 					mod_vals += 1
-					df_diff.loc[row,col] = ('{} → {}').format(value_OLD,value_NEW)
 		else:
 			new_rows.append(row)
 
@@ -73,35 +88,58 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 
 	df_diff = df_diff.sort_index().fillna('')
 
+	# Create output strings with the summary
+	summaryNewDropped = f"New Rows:\n{new_rows}\n\nDropped Rows:\n{dropped_rows}\n\nNew Columns:\n{new_cols}\n\nDropped Columns:\n{dropped_cols}"
+	summaryOverall = f"{mod_vals} modified values; {len(new_rows)} new rows; {len(dropped_rows)} dropped rows; {len(new_cols)} new columns; {len(dropped_cols)} dropped columns"
+	summaryChanged = f"For a total of {len(sharedRows)} shared rows:"
+	if len(changedValsForDFS) == 0:
+		summaryChanged += "\nNo values have been changed!"
+	else:
+		for col in changedValsForDFS:
+			summaryChanged += f"\n{col} has {len(changedValsForDFS[col])} changed values"
+
 	# add in the information about new/dropped rows/cols
 	# creating a new dataframe that will be added as a third sheet, called "results"
-	# DataFrame.append(other, ignore_index=False, verify_integrity=False, sort=None)
-	df_results = pd.DataFrame({"RESULTS (see worksheet DIFF for more information)":[
-											'{} modified values; {} new rows; {} dropped rows; {} new columns; {} dropped columns:'
-											.format(mod_vals, len(new_rows), len(dropped_rows), len(new_cols), len(dropped_cols)),
-											"New rows:                {}".format(new_rows),
-											"Dropped rows:        {}".format(dropped_rows),
-											"New columns:         {}".format(new_cols),
-											"Dropped columns: {}".format(dropped_cols)
-										]})
+	results = []
+	results.append(summaryOverall)
+	results.append("") # Line break
+	# split() returns a list, so concatenate them rather than append
+	results += summaryChanged.split("\n")
+	results.append("") # Line break
+	results += summaryNewDropped.split("\n")
+	results.append("") # Line break
+	
+	# Create a dataframe with the results summary
+	df_results = pd.DataFrame({"RESULTS (see worksheet DIFF for more information)": results})
 
 	print(df_diff)
-	print('\n{} modified values; {} new rows; {} dropped rows; {} new columns; {} dropped columns:'
-			.format(mod_vals, len(new_rows), len(dropped_rows), len(new_cols), len(dropped_cols)))
-	print('\nNew Rows:     	 {}'.format(new_rows))
-	print('Dropped Rows: 	 {}'.format(dropped_rows))
-	print('New Columns:     {}'.format(new_cols))
-	print('Dropped Columns: {}'.format(dropped_cols))
+
+	print(summaryNewDropped)
+	
+	print(f"\n{summaryOverall}")
+
+	print(f"\n{summaryChanged}")
 
 	# Save output and format
-	fname = '{} vs {}.xlsx'.format(path_OLD.stem,path_NEW.stem)
+	fname = f"{path_OLD.stem} vs {path_NEW.stem}.xlsx"
 	writer = pd.ExcelWriter(fname, engine='xlsxwriter')
 
-	df_results.to_excel(writer, sheet_name='SUMMARY', index=True)
+
+	# Save the worksheets
+	df_results.to_excel(writer, sheet_name='SUMMARY', index=False)
 	df_diff.to_excel(writer, sheet_name='DIFF', index=True)
 	df_NEW.to_excel(writer, sheet_name=path_NEW.stem, index=True)
 	df_OLD.to_excel(writer, sheet_name=path_OLD.stem, index=True)
 
+	# Make datasheets with all the information for the changed columns and add those to the workbook
+	for col in changedValsForDFS:
+		# Put in the data
+		dataframe = pd.DataFrame(changedValsForDFS[col])
+		# Name the columns
+		dataframe.columns = [df_diff.index.name, col]
+		# Add it to the workbook
+		dataframe.to_excel(writer,sheet_name=f"{col} - CHANGED VALUES"[:31], index=False) # Make sure the worksheet name is ≤ 31 chars
+	
 	# get xlsxwriter objects
 	workbook  = writer.book
 	worksheet = writer.sheets['DIFF']
@@ -137,7 +175,7 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 
 	# set format over range
 	## highlight changed cells
-	worksheet.conditional_format('A1:ZZ1000', {'type': 'text',
+	worksheet.conditional_format('A1:ZZ1000000', {'type': 'text',
 											'criteria': 'containing',
 											'value':'→',
 											'format': changed_fmt})
@@ -173,7 +211,7 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 	
 	# save
 	writer.save()
-	print('\nDone! Check "{} vs {}.xlsx" for the result.\n'.format(path_OLD.stem,path_NEW.stem))
+	print(f'\nDone! Check {fname} for the result.\n')
 
 def get_col_widths(dataframe):
 	# First we find the maximum length of the index column   
