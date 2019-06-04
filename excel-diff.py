@@ -154,7 +154,7 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 
 	# set format over range
 	## highlight changed cells
-	worksheet.conditional_format('A1:ZZ100000', {'type': 'text',
+	worksheet.conditional_format('A1:ZZ1000000', {'type': 'text',
 											'criteria': 'containing',
 											'value':'→',
 											'format': changed_fmt})
