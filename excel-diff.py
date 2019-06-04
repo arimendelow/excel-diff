@@ -100,7 +100,7 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 											"Dropped rows:        {}".format(dropped_rows),
 											"New columns:         {}".format(new_cols),
 											"Dropped columns: {}".format(dropped_cols)
-										]})
+										]}, )
 
 	print(df_diff)
 
@@ -114,7 +114,7 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 	fname = '{} vs {}.xlsx'.format(path_OLD.stem,path_NEW.stem)
 	writer = pd.ExcelWriter(fname, engine='xlsxwriter')
 
-	df_results.to_excel(writer, sheet_name='SUMMARY', index=True)
+	df_results.to_excel(writer, sheet_name='SUMMARY', index=False)
 	df_diff.to_excel(writer, sheet_name='DIFF', index=True)
 	df_NEW.to_excel(writer, sheet_name=path_NEW.stem, index=True)
 	df_OLD.to_excel(writer, sheet_name=path_OLD.stem, index=True)
@@ -154,7 +154,7 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 
 	# set format over range
 	## highlight changed cells
-	worksheet.conditional_format('A1:ZZ1000', {'type': 'text',
+	worksheet.conditional_format('A1:ZZ100000', {'type': 'text',
 											'criteria': 'containing',
 											'value':'→',
 											'format': changed_fmt})
