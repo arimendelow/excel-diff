@@ -94,13 +94,17 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 
 	# add in the information about new/dropped rows/cols
 	# creating a new dataframe that will be added as a third sheet, called "results"
-	df_results = pd.DataFrame({"RESULTS (see worksheet DIFF for more information)":[
-											summaryOverall,
-											"New rows:                {}".format(new_rows),
-											"Dropped rows:        {}".format(dropped_rows),
-											"New columns:         {}".format(new_cols),
-											"Dropped columns: {}".format(dropped_cols)
-										]}, )
+	results = []
+	results.append(summaryOverall)
+	results.append("") # Line break
+	# split() returns a list, so concatenate them rather than append
+	results += summaryChanged.split("\n")
+	results.append("") # Line break
+	results += summaryNewDropped.split("\n")
+	results.append("") # Line break
+	
+	# Create a dataframe with the results summary
+	df_results = pd.DataFrame({"RESULTS (see worksheet DIFF for more information)": results})
 
 	print(df_diff)
 
