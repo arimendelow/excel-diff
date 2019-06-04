@@ -124,12 +124,22 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 	fname = f"{path_OLD.stem} vs {path_NEW.stem}.xlsx"
 	writer = pd.ExcelWriter(fname, engine='xlsxwriter')
 
+
 	# Save the worksheets
 	df_results.to_excel(writer, sheet_name='SUMMARY', index=False)
 	df_diff.to_excel(writer, sheet_name='DIFF', index=True)
 	df_NEW.to_excel(writer, sheet_name=path_NEW.stem, index=True)
 	df_OLD.to_excel(writer, sheet_name=path_OLD.stem, index=True)
 
+	# Make datasheets with all the information for the changed columns and add those to the workbook
+	for col in changedValsForDFS:
+		# Put in the data
+		dataframe = pd.DataFrame(changedValsForDFS[col])
+		# Name the columns
+		dataframe.columns = [df_diff.index.name, col]
+		# Add it to the workbook
+		dataframe.to_excel(writer,sheet_name=f"{col} - CHANGED VALUES"[:31], index=False) # Make sure the worksheet name is ≤ 31 chars
+	
 	# get xlsxwriter objects
 	workbook  = writer.book
 	worksheet = writer.sheets['DIFF']
