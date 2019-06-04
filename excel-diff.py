@@ -20,7 +20,6 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 	dropped_cols = []
 	new_cols = []
 	mod_vals = 0
-	mod_cols = {}
 
 	cols_OLD = df_OLD.columns
 	cols_NEW = df_NEW.columns
@@ -53,12 +52,6 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 						changedValsForDFS[col].append((row, delta))
 					else:
 						changedValsForDFS[col] = [(row, delta)]
-
-					# For tracking how many cells in a given column have been changed
-					if col in mod_cols:
-						mod_cols[col] += 1
-					else:
-						mod_cols[col] = 1
 					
 					# Track overall number of changed values
 					mod_vals += 1
@@ -99,11 +92,11 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 	summaryNewDropped = f"New Rows:\n{new_rows}\n\nDropped Rows:\n{dropped_rows}\n\nNew Columns:\n{new_cols}\n\nDropped Columns:\n{dropped_cols}"
 	summaryOverall = f"{mod_vals} modified values; {len(new_rows)} new rows; {len(dropped_rows)} dropped rows; {len(new_cols)} new columns; {len(dropped_cols)} dropped columns"
 	summaryChanged = f"For a total of {len(sharedRows)} shared rows:"
-	if len(mod_cols) == 0:
+	if len(changedValsForDFS) == 0:
 		summaryChanged += "\nNo values have been changed!"
 	else:
-		for col in mod_cols:
-			summaryChanged += f"\n{col} has {mod_cols[col]} changed values"
+		for col in changedValsForDFS:
+			summaryChanged += f"\n{col} has {len(changedValsForDFS[col])} changed values"
 
 	# add in the information about new/dropped rows/cols
 	# creating a new dataframe that will be added as a third sheet, called "results"
