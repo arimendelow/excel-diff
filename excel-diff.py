@@ -20,6 +20,7 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 	dropped_cols = []
 	new_cols = []
 	mod_vals = 0
+	mod_cols = {}
 
 	cols_OLD = df_OLD.columns
 	cols_NEW = df_NEW.columns
@@ -38,8 +39,15 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 					df_diff.loc[row,col] = value_OLD
 				# otherwise, if the value has been changed:
 				else:
+					# Track how many cells in a given column have been changed
+					if col in mod_cols:
+						mod_cols[col] += 1
+					else:
+						mod_cols[col] = 1
+					
+					# Track overall number of changed values
 					mod_vals += 1
-					df_diff.loc[row,col] = ('{} → {}').format(value_OLD,value_NEW)
+					df_diff.loc[row,col] = (f'{value_OLD} → {value_NEW}')
 		else:
 			new_rows.append(row)
 
@@ -86,12 +94,14 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 										]})
 
 	print(df_diff)
-	print('\n{} modified values; {} new rows; {} dropped rows; {} new columns; {} dropped columns:'
-			.format(mod_vals, len(new_rows), len(dropped_rows), len(new_cols), len(dropped_cols)))
-	print('\nNew Rows:     	 {}'.format(new_rows))
-	print('Dropped Rows: 	 {}'.format(dropped_rows))
-	print('New Columns:     {}'.format(new_cols))
-	print('Dropped Columns: {}'.format(dropped_cols))
+	print(f"\n{mod_vals} modified values; {len(new_rows)} new rows; {len(dropped_rows)} dropped rows; {len(new_cols)} new columns; {len(dropped_cols)} dropped columns:")
+	print(f"\nNew Rows:     	 {new_rows}")
+	print(f"Dropped Rows: 	 {dropped_rows}")
+	print(f"New Columns:     {new_cols}")
+	print(f"Dropped Columns: {dropped_cols}")
+
+	for col in mod_cols:
+		print(f"{col} has {mod_cols[col]} changed values")
 
 	# Save output and format
 	fname = '{} vs {}.xlsx'.format(path_OLD.stem,path_NEW.stem)
