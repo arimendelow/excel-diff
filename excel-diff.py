@@ -25,6 +25,7 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 	cols_OLD = df_OLD.columns
 	cols_NEW = df_NEW.columns
 	sharedCols = list(set(cols_OLD).intersection(cols_NEW))
+	sharedRows = list(set(df_OLD.index).intersection(df_NEW.index))
 	
 	for row in df_diff.index:
 		bar.update()
@@ -94,14 +95,20 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 										]})
 
 	print(df_diff)
-	print(f"\n{mod_vals} modified values; {len(new_rows)} new rows; {len(dropped_rows)} dropped rows; {len(new_cols)} new columns; {len(dropped_cols)} dropped columns:")
+
 	print(f"\nNew Rows:     	 {new_rows}")
 	print(f"Dropped Rows: 	 {dropped_rows}")
 	print(f"New Columns:     {new_cols}")
 	print(f"Dropped Columns: {dropped_cols}")
 
-	for col in mod_cols:
-		print(f"{col} has {mod_cols[col]} changed values")
+	print(f"\n{mod_vals} modified values; {len(new_rows)} new rows; {len(dropped_rows)} dropped rows; {len(new_cols)} new columns; {len(dropped_cols)} dropped columns:")
+
+	print(f"\nFor a total of {len(sharedRows)} shared rows:")
+	if len(mod_cols) == 0:
+		print("No values have been changed!")
+	else:
+		for col in mod_cols:
+			print(f"{col} has {mod_cols[col]} changed values")
 
 	# Save output and format
 	fname = '{} vs {}.xlsx'.format(path_OLD.stem,path_NEW.stem)
