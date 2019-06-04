@@ -25,12 +25,16 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 	cols_OLD = df_OLD.columns
 	cols_NEW = df_NEW.columns
 	sharedCols = list(set(cols_OLD).intersection(cols_NEW))
+
 	sharedRows = list(set(df_OLD.index).intersection(df_NEW.index))
+
+	# Track all information necessary for putting all changed information into mini-worksheets
+	changedValsForDFS = {}
 	
 	for row in df_diff.index:
 		bar.update()
 		# if the row is in both tables
-		if (row in df_OLD.index) and (row in df_NEW.index):
+		if row in sharedRows:
 			# go through the stuff that's in both sheets, checking if it's been changed
 			for col in sharedCols:
 				value_OLD = "" if pd.isnull(df_OLD.loc[row,col]) else df_OLD.loc[row,col]
@@ -40,7 +44,17 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 					df_diff.loc[row,col] = value_OLD
 				# otherwise, if the value has been changed:
 				else:
-					# Track how many cells in a given column have been changed
+					delta = f'{value_OLD} → {value_NEW}'
+					# In the diff worksheet, put the old and new values
+					df_diff.loc[row,col] = (delta)
+					
+					# Put the name of the column as well as the row name and changed value into this dictionary
+					if col in changedValsForDFS:
+						changedValsForDFS[col].append((row, delta))
+					else:
+						changedValsForDFS[col] = [(row, delta)]
+
+					# For tracking how many cells in a given column have been changed
 					if col in mod_cols:
 						mod_cols[col] += 1
 					else:
@@ -48,7 +62,6 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 					
 					# Track overall number of changed values
 					mod_vals += 1
-					df_diff.loc[row,col] = (f'{value_OLD} → {value_NEW}')
 		else:
 			new_rows.append(row)
 
