@@ -143,9 +143,9 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 	
 	# get xlsxwriter objects
 	workbook  = writer.book
-	worksheet = writer.sheets['DIFF']
-	# worksheet.hide_gridlines(2)
-	worksheet.set_default_row(15)
+	worksheetDiff = writer.sheets['DIFF']
+	worksheetSummary = writer.sheets['SUMMARY']
+	worksheetDiff.set_default_row(15)
 
 	# define formats
 	date_fmt = workbook.add_format({'align': 'center', 'num_format': 'yyyy-mm-dd'})
@@ -167,16 +167,16 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 	col_num = 1
 	for column in enumerate(df_diff.columns):
 		if column[1] not in df_OLD.columns:
-			worksheet.write(0, col_num, column[1], new_fmt_header)
+			worksheetDiff.write(0, col_num, column[1], new_fmt_header)
 		elif column[1] not in df_NEW.columns:
-			worksheet.write(0, col_num, column[1], rm_fmt_header)
+			worksheetDiff.write(0, col_num, column[1], rm_fmt_header)
 		else:
-			worksheet.write(0, col_num, column[1], orig_fmt_header)
+			worksheetDiff.write(0, col_num, column[1], orig_fmt_header)
 		col_num += 1
 
 	# set format over range
 	## highlight changed cells
-	worksheet.conditional_format('A1:ZZ1000000', {'type': 'text',
+	worksheetDiff.conditional_format('A1:ZZ1000000', {'type': 'text',
 											'criteria': 'containing',
 											'value':'→',
 											'format': changed_fmt})
@@ -187,12 +187,12 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 	for row in df_diff.index:
 		if row in new_rows:
 			# format row content
-			worksheet.set_row(row_index, 15, new_fmt)
+			worksheetDiff.set_row(row_index, 15, new_fmt)
 			# format row header
-			worksheet.write(row_index, 0, row, new_fmt_header)
+			worksheetDiff.write(row_index, 0, row, new_fmt_header)
 		if row in dropped_rows:
-			worksheet.set_row(row_index, 15, rm_fmt)
-			worksheet.write(row_index, 0, row, rm_fmt_header)
+			worksheetDiff.set_row(row_index, 15, rm_fmt)
+			worksheetDiff.write(row_index, 0, row, rm_fmt_header)
 		row_index += 1
 
 	# highlight new/changed cols
@@ -201,14 +201,15 @@ def excel_diff(path_OLD, path_NEW, index_col_OLD, index_col_NEW):
 	col_index = 1
 	for col in df_diff.columns:
 		if col not in df_OLD.columns:
-			worksheet.set_column(col_index, col_index, 15, new_fmt)
+			worksheetDiff.set_column(col_index, col_index, 15, new_fmt)
 		if col not in df_NEW.columns:
-			worksheet.set_column(col_index, col_index, 15, rm_fmt)
+			worksheetDiff.set_column(col_index, col_index, 15, rm_fmt)
 		col_index += 1
 
 	# set approx column widths:
 	for i, width in enumerate(get_col_widths(df_diff)):
-		worksheet.set_column(i, i, width)
+		worksheetDiff.set_column(i, i, width)
+	worksheetSummary.set_column(0, 0, 50)
 	
 	# save
 	writer.save()
